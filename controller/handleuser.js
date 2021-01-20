@@ -1,9 +1,12 @@
 
 var user = require('../models/usermodel');
 
-var multer = require('multer');
+// var multer = require('multer');
 var fs = require('fs');
 var path = require('path');
+
+const fileHelper = require('../util/file');
+
 // var form = new formidable.IncomingForm();
 
 exports.savedata = async (req, res, next) => {
@@ -20,8 +23,9 @@ exports.savedata = async (req, res, next) => {
 
     // http://localhost:3500/1610436759017600PX.png
 
-    var imageurl = `${protocol}://${header}/${imagename}`;
+    // var imageurl = `${protocol}://${header}/${imagename}`;
 
+    var imageLink = req.file.path;
 
 
 
@@ -31,7 +35,7 @@ exports.savedata = async (req, res, next) => {
     newUser.lastname = lastname;
 
     newUser.email = email;
-    newUser.imagename = imageurl;
+    newUser.imageUrl = imageLink;
 
 
     newUser.save().then(() => (res.json('added')));
@@ -55,11 +59,34 @@ exports.savedata = async (req, res, next) => {
 exports.updatedata = async (req, res, next) => {
 
 
+    var { firstname, lastname, email } = req.body;
 
 
+    const image = req.file;
+
+    console.log(req.body);
+    user.findById(req.params.id)
+        .then(data => {
+
+            data.firstname = firstname;
+            data.lastname = lastname;
+            data.email = email;
 
 
-
+            if (image) {
+                fileHelper.deleteFile(data.imageUrl);
+                data.imageUrl = image.path;
+            }
+            return data.save().then(result => {
+                console.log('UPDATED data!');
+                res.end()
+            });
+        })
+        .catch(err => {
+            const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
+        });
 
 
 
@@ -297,11 +324,15 @@ exports.ifdeleted = async (req, res, next) => {
 
 exports.getdata = async (req, res, next) => {
 
-    user.findById(req.params.id, (data, err) => {
+    user.findById(req.params.id, (err, data) => {
         if (!err) {
             console.log(data)
+
+            res.json(data)
+            res.end()
         }
         console.log(err);
+
     })
 
 

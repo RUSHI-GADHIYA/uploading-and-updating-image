@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 
 var logger = require('morgan');
 var multer = require('multer');
-var upload = multer();
+
 
 var userroute = require('./routes/route')
 var path = require('path');
@@ -19,9 +19,23 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json())
 
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        cb(null,
+            Date.now() + file.originalname);
+    }
+
+});
+
+var upload = multer({ storage: storage });
 
 
-
+app.use(
+    multer({ storage: storage }).single('photo')
+);
 
 // app.use(express.json());
 // app.use(express.urlencoded({ extended: false }));
@@ -29,7 +43,7 @@ app.use(bodyParser.json())
 // for parsing multipart/form-data
 //app.use(upload.array());
 app.use(express.static('./uploads'))
-
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // app.set('uploads', path.join(__dirname, '../backup'));
 

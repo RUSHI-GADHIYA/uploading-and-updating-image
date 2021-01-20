@@ -5,7 +5,7 @@ var user = new mongoose.Schema({
     firstname: String,
     lastname: String,
     email: String,
-    imagename: String,
+    imageUrl: String,
 
     referral_code: {
         type: String,
